@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reel — your watch diary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz@0,6..72;1,6..72&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#16121c;--panel:#201a29;--panel-2:#2a2233;--line:#3a3145;
+    --ink:#efe9f5;--muted:#9d92ad;--gold:#e8b84b;--rose:#e2607a;--green:#63c088;--radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(1200px 600px at 80% -10%, #241b30 0%, var(--bg) 55%);
+    color:var(--ink);font-family:'Inter',system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 80px}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;padding:34px 0 20px;flex-wrap:wrap;gap:16px}
+  .brand{display:flex;align-items:baseline;gap:12px}
+  .logo{font-family:'Bebas Neue';font-size:44px;letter-spacing:2px;line-height:.9}
+  .logo .dot{color:var(--gold)}
+  .tag{color:var(--muted);font-size:13px;letter-spacing:.3px}
+  .stats{display:flex;gap:26px}
+  .stat{text-align:right}
+  .stat .n{font-family:'Bebas Neue';font-size:30px;line-height:1;color:var(--gold)}
+  .stat .l{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-top:3px}
+
+  .tabs{display:flex;gap:6px;margin-bottom:22px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:none;color:var(--muted);font-family:inherit;font-weight:600;font-size:14px;padding:12px 18px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}
+  .tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+  .tab .count{font-size:12px;color:var(--muted);margin-left:5px}
+
+  .bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:20px}
+  input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+  input::placeholder,textarea::placeholder{color:var(--muted)}
+  input[type=date]{color-scheme:dark}
+  .grow{flex:1;min-width:180px}
+  button{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:none;border-radius:9px;padding:10px 16px;transition:.15s}
+  .btn-gold{background:var(--gold);color:#231a08}
+  .btn-gold:hover{filter:brightness(1.08)}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn-ghost:hover{color:var(--ink);border-color:var(--gold)}
+  .icon-btn{background:transparent;border:1px solid var(--line);color:var(--muted);padding:10px 12px}
+  .icon-btn:hover{color:var(--gold);border-color:var(--gold)}
+  .chip{background:transparent;color:var(--muted);border:1px solid var(--line);padding:7px 14px;border-radius:20px;font-size:13px}
+  .chip.active{background:var(--gold);color:#231a08;border-color:var(--gold)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center}
+  .view-toggle{margin-left:auto;display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .view-toggle button{padding:6px 12px;font-size:13px;background:transparent;color:var(--muted);border-radius:6px}
+  .view-toggle button.on{background:var(--gold);color:#231a08}
+
+  /* GRID VIEW */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;transition:.18s;position:relative}
+  .card:hover{transform:translateY(-3px);border-color:#54485f}
+  .poster{aspect-ratio:2/3;background:linear-gradient(160deg,#332a3f,#231c2c);display:flex;align-items:center;justify-content:center;position:relative;font-family:'Bebas Neue';font-size:20px;letter-spacing:1px;color:#5f5470;text-align:center;padding:14px}
+  .poster img{width:100%;height:100%;object-fit:cover}
+  .badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:3px 7px;border-radius:6px;background:rgba(0,0,0,.55);backdrop-filter:blur(4px)}
+  .badge.film{color:var(--gold)}
+  .badge.tv{color:var(--rose)}
+  .ring{position:absolute;bottom:8px;right:8px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:17px;color:var(--gold)}
+  .meta{padding:11px 12px 13px}
+  .title{font-weight:600;font-size:14px;line-height:1.25;margin-bottom:3px}
+  .sub{color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:8px}
+  .corner{position:absolute;top:8px;right:8px;display:flex;gap:6px;opacity:0;transition:.15s}
+  .card:hover .corner{opacity:1}
+  .mini{width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;backdrop-filter:blur(4px);padding:0}
+  .mini:hover{background:var(--gold);color:#231a08}
+  .mini.d:hover{background:var(--rose);color:#fff}
+  .mini.w:hover{background:var(--green);color:#0e2417}
+
+  /* DIARY VIEW */
+  .diary{position:relative}
+  .month{margin-bottom:34px}
+  .month-head{font-family:'Bebas Neue';font-size:22px;letter-spacing:1.5px;color:var(--gold);padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;justify-content:space-between;align-items:baseline}
+  .month-head .mc{font-family:'Inter';font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.5px}
+  .entry{display:flex;gap:16px;padding:18px 6px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s}
+  .entry:hover{background:var(--panel);border-radius:10px;border-bottom-color:transparent;padding-left:12px;padding-right:12px}
+  .entry:last-child{border-bottom:none}
+  .day{flex-shrink:0;width:46px;text-align:center;padding-top:2px}
+  .day .num{font-family:'Bebas Neue';font-size:30px;line-height:.9;color:var(--ink)}
+  .day .dow{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px}
+  .e-poster{flex-shrink:0;width:52px;height:78px;border-radius:6px;overflow:hidden;background:linear-gradient(160deg,#332a3f,#231c2c);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue';font-size:11px;color:#5f5470;text-align:center;padding:4px}
+  .e-poster img{width:100%;height:100%;object-fit:cover}
+  .e-body{flex:1;min-width:0}
+  .e-title{font-weight:600;font-size:16px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .e-title .yr{color:var(--muted);font-weight:400;font-size:13px}
+  .e-title .tag-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding:2px 6px;border-radius:5px;background:var(--panel-2)}
+  .e-title .tag-type.film{color:var(--gold)}
+  .e-title .tag-type.tv{color:var(--rose)}
+  .e-rate{display:inline-flex;align-items:center;gap:5px;margin-top:5px;font-size:13px;color:var(--muted)}
+  .e-rate .score{font-family:'Bebas Neue';font-size:18px;color:var(--gold);letter-spacing:.5px}
+  .e-rate .fav{color:var(--gold)}
+  .e-notes{font-family:'Newsreader',Georgia,serif;font-size:15px;line-height:1.55;color:#d8cfe4;margin-top:8px;font-style:italic}
+  .e-notes::before{content:'\201C';color:var(--muted)}
+  .e-notes::after{content:'\201D';color:var(--muted)}
+  .e-del{align-self:flex-start;background:transparent;border:none;color:var(--muted);font-size:18px;padding:2px 6px;opacity:0;transition:.15s}
+  .entry:hover .e-del{opacity:1}
+  .e-del:hover{color:var(--rose)}
+
+  .empty{text-align:center;padding:70px 20px;color:var(--muted)}
+  .empty .big{font-family:'Bebas Neue';font-size:34px;color:#5f5470;letter-spacing:1px}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,7,14,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:18px;width:100%;max-width:460px;padding:26px;max-height:90vh;overflow-y:auto}
+  .modal h2{font-family:'Bebas Neue';font-size:28px;letter-spacing:1px;margin-bottom:18px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%}
+  .field textarea{resize:vertical;min-height:90px;font-family:'Newsreader',Georgia,serif;font-size:15px;line-height:1.5}
+  .rate{display:flex;gap:6px}
+  .rate .r{flex:1;text-align:center;padding:9px 0;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);transition:.12s}
+  .rate .r.on{background:var(--gold);color:#231a08;border-color:var(--gold)}
+  .row2{display:flex;gap:10px}
+  .row2>*{flex:1}
+  .modal-actions{display:flex;gap:10px;margin-top:22px}
+  .modal-actions button{flex:1}
+  .seg{display:flex;gap:8px}
+  .seg .s{flex:1;text-align:center;padding:9px;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+  .seg .s.on{border-color:var(--gold);color:var(--ink);background:var(--panel-2)}
+
+  .search-wrap{position:relative}
+  .results{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;max-height:280px;overflow-y:auto;z-index:10;display:none}
+  .results.show{display:block}
+  .res-item{display:flex;gap:10px;padding:8px 10px;cursor:pointer;align-items:center;border-bottom:1px solid var(--line)}
+  .res-item:last-child{border-bottom:none}
+  .res-item:hover{background:var(--panel)}
+  .res-item img,.res-ph{width:34px;height:51px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#332a3f}
+  .res-info{min-width:0}
+  .res-t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .res-m{font-size:11px;color:var(--muted)}
+  .res-status{padding:12px;font-size:13px;color:var(--muted);text-align:center}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4}
+  .hint a{color:var(--gold)}
+  .bulk-list{display:flex;flex-direction:column;gap:8px;margin:4px 0 4px;max-height:230px;overflow-y:auto}
+  .bulk-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+  .bulk-row img,.bulk-row .ph{width:28px;height:42px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#332a3f}
+  .bulk-row .bt{flex:1;min-width:0}
+  .bulk-row .bt .n{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bulk-row .bt .m{font-size:11px;color:var(--muted)}
+  .bulk-row .rm{background:transparent;border:none;color:var(--muted);font-size:17px;cursor:pointer;padding:2px 6px}
+  .bulk-row .rm:hover{color:var(--rose)}
+  .bulk-empty{color:var(--muted);font-size:13px;text-align:center;padding:14px;border:1px dashed var(--line);border-radius:9px}
+  @media(max-width:560px){.stats{gap:16px}.logo{font-size:36px}.day{width:38px}.day .num{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">REEL<span class="dot">.</span></div>
+      <span class="tag">a diary of everything you watch</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="s-total">0</div><div class="l">Entries</div></div>
+      <div class="stat"><div class="n" id="s-films">0</div><div class="l">Films</div></div>
+      <div class="stat"><div class="n" id="s-tv">0</div><div class="l">Series</div></div>
+      <div class="stat"><div class="n" id="s-avg">—</div><div class="l">Avg</div></div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-log" onclick="setTab('log')">Diary<span class="count" id="c-log"></span></button>
+    <button class="tab" id="tab-watch" onclick="setTab('watch')">Watchlist<span class="count" id="c-watch"></span></button>
+  </div>
+
+  <div class="bar">
+    <input class="grow" id="search" placeholder="Search titles & notes…">
+    <select id="sort">
+      <option value="watched">Date watched</option>
+      <option value="added">Recently added</option>
+      <option value="rating">Highest rated</option>
+      <option value="title">Title A–Z</option>
+    </select>
+    <button class="btn-gold" id="add-btn" onclick="openModal()">+ New entry</button>
+    <button class="btn-ghost" id="bulk-btn" onclick="openBulk()">Bulk add</button>
+    <button class="icon-btn" onclick="openSettings()" title="Settings">⚙</button>
+  </div>
+
+  <div class="filters">
+    <button class="chip active" data-f="all" onclick="setFilter('all',this)">All</button>
+    <button class="chip" data-f="film" onclick="setFilter('film',this)">Films</button>
+    <button class="chip" data-f="tv" onclick="setFilter('tv',this)">Series</button>
+    <button class="chip" data-f="fav" id="chip-fav" onclick="setFilter('fav',this)">★ Favorites</button>
+    <div class="view-toggle" id="view-toggle">
+      <button id="v-diary" class="on" onclick="setView('diary')">Diary</button>
+      <button id="v-grid" onclick="setView('grid')">Grid</button>
+    </div>
+  </div>
+
+  <div class="diary" id="diary"></div>
+  <div class="grid" id="grid" style="display:none"></div>
+  <div class="empty" id="empty" style="display:none">
+    <div class="big" id="empty-big">Your diary is empty</div>
+    <p style="margin-top:8px" id="empty-sub">Log the last thing you watched to begin.</p>
+  </div>
+</div>
+
+<!-- add/edit modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2 id="modal-title">New diary entry</h2>
+    <div class="field">
+      <label>Search TMDB</label>
+      <div class="search-wrap">
+        <input id="tmdb-search" placeholder="Type a title to auto-fill…" autocomplete="off">
+        <div class="results" id="tmdb-results"></div>
+      </div>
+      <div class="hint" id="tmdb-hint"></div>
+    </div>
+    <div class="field">
+      <label>Type</label>
+      <div class="seg" id="seg-type">
+        <div class="s on" data-t="film" onclick="pickType('film',this)">🎬 Film</div>
+        <div class="s" data-t="tv" onclick="pickType('tv',this)">📺 Series</div>
+      </div>
+    </div>
+    <div class="field"><label>Title</label><input id="f-title" placeholder="e.g. Dune: Part Two"></div>
+    <div class="row2">
+      <div class="field"><label>Year</label><input id="f-year" placeholder="2024" inputmode="numeric"></div>
+      <div class="field"><label>Poster URL</label><input id="f-poster" placeholder="https://…"></div>
+    </div>
+    <div id="watched-fields">
+      <div class="field" id="date-field">
+        <label>Date watched</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="field">
+        <label>Rating</label>
+        <div class="rate" id="rate"></div>
+      </div>
+      <div class="field">
+        <label>Diary notes</label>
+        <textarea id="f-notes" placeholder="How was it? What did you feel, notice, want to remember?"></textarea>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="f-fav" style="width:auto"> Mark as favorite
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-gold" id="save-btn" onclick="save()">Save entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- settings modal -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <h2>Settings</h2>
+    <div class="field">
+      <label>TMDB API Key (v3)</label>
+      <input id="tmdb-key" placeholder="Paste your key…" autocomplete="off">
+      <div class="hint">Enables title search with auto-filled posters & years. Get a free key at <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">themoviedb.org</a> → API → API Key (v3 auth).</div>
+    </div>
+    <div id="key-status" class="hint"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeSettings()">Close</button>
+      <button class="btn-gold" onclick="saveKey()">Save key</button>
+    </div>
+  </div>
+</div>
+
+<!-- bulk add modal -->
+<div class="overlay" id="bulk-overlay">
+  <div class="modal" style="max-width:520px">
+    <h2>Bulk add past watches</h2>
+    <div class="row2">
+      <div class="field" id="bulk-date-field">
+        <label>Date watched (shared)</label>
+        <input type="date" id="bulk-date">
+      </div>
+      <div class="field">
+        <label>Type for new</label>
+        <div class="seg" id="bulk-seg">
+          <div class="s on" data-t="film" onclick="bulkType('film',this)">🎬 Film</div>
+          <div class="s" data-t="tv" onclick="bulkType('tv',this)">📺 Series</div>
+        </div>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;margin:-4px 0 14px">
+      <input type="checkbox" id="bulk-nodate" style="width:auto" onchange="toggleBulkDate()"> Date unknown (use Jan 1 of a year)
+    </label>
+    <div class="field" id="bulk-year-field" style="display:none">
+      <label>Year watched</label>
+      <input id="bulk-year" placeholder="e.g. 2019" inputmode="numeric">
+    </div>
+    <div class="field">
+      <label>Find & add titles</label>
+      <div class="search-wrap">
+        <input id="bulk-search" placeholder="Search TMDB, or type a title and press Enter…" autocomplete="off">
+        <div class="results" id="bulk-results"></div>
+      </div>
+      <div class="hint" id="bulk-hint"></div>
+    </div>
+    <div id="bulk-list" class="bulk-list"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeBulk()">Cancel</button>
+      <button class="btn-gold" id="bulk-save" onclick="saveBulk()">Log all</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='reel:entries', KKEY='reel:tmdbkey';
+let entries=[];
+let tab='log', filter='all', view='diary', editId=null, formType='film', formRating=0, tmdbKey='';
+let searchTimer=null;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+async function load(){
+  try{const r=await window.storage.get(KEY);entries=r?JSON.parse(r.value):[]}catch(e){entries=[]}
+  try{const k=await window.storage.get(KKEY);tmdbKey=k?k.value:''}catch(e){tmdbKey=''}
+  // migrate old entries: give them a watched date from their added timestamp
+  let changed=false;
+  const seen=new Set();
+  entries.forEach(e=>{
+    if((e.list||'log')==='log' && !e.watched){ e.watched=toDateStr(e.added||Date.now()); changed=true; }
+    if(!e.list)e.list='log';
+    if(!e.id||seen.has(e.id)){ e.id=newId(); changed=true; }  // repair missing/duplicate ids
+    seen.add(e.id);
+  });
+  if(changed)persist();
+  render();
+}
+async function persist(){try{await window.storage.set(KEY,JSON.stringify(entries))}catch(e){console.error(e)}}
+
+function toDateStr(ts){const d=new Date(ts);const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
+function todayStr(){return toDateStr(Date.now())}
+let _idc=0;
+function newId(){return Date.now().toString(36)+'-'+(_idc++).toString(36)+'-'+Math.random().toString(36).slice(2,7)}
+function parseDate(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+
+const rateEl=document.getElementById('rate');
+for(let i=1;i<=10;i++){const d=document.createElement('div');d.className='r';d.textContent=i;d.onclick=()=>{formRating=(formRating===i?0:i);paintRate()};rateEl.appendChild(d)}
+function paintRate(){[...rateEl.children].forEach((c,i)=>c.classList.toggle('on',i+1===formRating))}
+function pickType(t,el){formType=t;[...document.getElementById('seg-type').children].forEach(s=>s.classList.remove('on'));el.classList.add('on')}
+
+function setTab(t){
+  tab=t;
+  document.getElementById('tab-log').classList.toggle('active',t==='log');
+  document.getElementById('tab-watch').classList.toggle('active',t==='watch');
+  document.getElementById('add-btn').textContent = t==='log' ? '+ New entry' : '+ Add to watchlist';
+  document.getElementById('chip-fav').style.display = t==='log' ? '' : 'none';
+  document.getElementById('view-toggle').style.display = t==='log' ? '' : 'none';
+  document.getElementById('bulk-btn').style.display = t==='log' ? '' : 'none';
+  if(t==='watch'){setView('grid',true);if(filter==='fav')setFilterVal('all')}
+  else{setView(view,true)}
+  render();
+}
+function setFilter(f,el){filter=f;document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');render()}
+function setFilterVal(f){filter=f;document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===f))}
+function setView(v,silent){
+  if(tab==='log')view=v;
+  const useV = tab==='watch' ? 'grid' : v;
+  document.getElementById('v-diary').classList.toggle('on',view==='diary');
+  document.getElementById('v-grid').classList.toggle('on',view==='grid');
+  document.getElementById('diary').style.display = useV==='diary' ? '' : 'none';
+  document.getElementById('grid').style.display = useV==='grid' ? '' : 'none';
+  if(!silent)render();
+}
+
+function openModal(entry=null){
+  editId=entry?entry.id:null;
+  const isWatch = (entry? entry.list : tab) === 'watch';
+  document.getElementById('modal-title').textContent = entry ? (isWatch?'Edit watchlist item':'Edit entry') : (isWatch?'Add to watchlist':'New diary entry');
+  document.getElementById('save-btn').textContent=entry?'Update':'Save entry';
+  document.getElementById('watched-fields').style.display = isWatch ? 'none' : 'block';
+  formType=entry?entry.type:'film';formRating=entry?(entry.rating||0):0;
+  [...document.getElementById('seg-type').children].forEach(s=>s.classList.toggle('on',s.dataset.t===formType));
+  document.getElementById('f-title').value=entry?entry.title:'';
+  document.getElementById('f-year').value=entry?entry.year:'';
+  document.getElementById('f-poster').value=entry?(entry.poster||''):'';
+  document.getElementById('f-notes').value=entry?(entry.notes||''):'';
+  document.getElementById('f-fav').checked=entry?!!entry.fav:false;
+  document.getElementById('f-date').value=entry&&entry.watched?entry.watched:todayStr();
+  document.getElementById('tmdb-search').value='';
+  document.getElementById('tmdb-results').classList.remove('show');
+  paintRate();
+  const hint=document.getElementById('tmdb-hint');
+  hint.innerHTML = tmdbKey ? '' : 'Add a TMDB key in ⚙ Settings to search & auto-fill, or enter details manually below.';
+  document.getElementById('overlay').classList.add('show');
+  setTimeout(()=>document.getElementById(tmdbKey?'tmdb-search':'f-title').focus(),50);
+}
+function closeModal(){document.getElementById('overlay').classList.remove('show')}
+document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closeModal()};
+
+const searchInput=document.getElementById('tmdb-search');
+const resultsBox=document.getElementById('tmdb-results');
+searchInput.addEventListener('input',()=>{
+  const q=searchInput.value.trim();clearTimeout(searchTimer);
+  if(!tmdbKey)return;
+  if(q.length<2){resultsBox.classList.remove('show');return}
+  resultsBox.innerHTML='<div class="res-status">Searching…</div>';resultsBox.classList.add('show');
+  searchTimer=setTimeout(()=>tmdbSearch(q),300);
+});
+async function tmdbSearch(q){
+  try{
+    const url=`https://api.themoviedb.org/3/search/multi?api_key=${encodeURIComponent(tmdbKey)}&query=${encodeURIComponent(q)}&include_adult=false`;
+    const res=await fetch(url);
+    if(!res.ok){resultsBox.innerHTML=`<div class="res-status">TMDB error ${res.status}. Check your API key in Settings.</div>`;return}
+    const data=await res.json();
+    const items=(data.results||[]).filter(r=>r.media_type==='movie'||r.media_type==='tv').slice(0,8);
+    if(!items.length){resultsBox.innerHTML='<div class="res-status">No matches found.</div>';return}
+    resultsBox.innerHTML='';
+    items.forEach(it=>{
+      const isFilm=it.media_type==='movie';
+      const title=isFilm?it.title:it.name;
+      const date=isFilm?it.release_date:it.first_air_date;
+      const year=date?date.slice(0,4):'';
+      const poster=it.poster_path?`https://image.tmdb.org/t/p/w92${it.poster_path}`:'';
+      const big=it.poster_path?`https://image.tmdb.org/t/p/w500${it.poster_path}`:'';
+      const row=document.createElement('div');row.className='res-item';
+      row.innerHTML=`${poster?`<img src="${poster}" alt="">`:'<div class="res-ph"></div>'}<div class="res-info"><div class="res-t">${escapeHtml(title)}</div><div class="res-m">${isFilm?'Film':'Series'}${year?' · '+year:''}</div></div>`;
+      row.onclick=()=>pickResult({title,year,poster:big,type:isFilm?'film':'tv'});
+      resultsBox.appendChild(row);
+    });
+  }catch(e){resultsBox.innerHTML='<div class="res-status">Network error reaching TMDB.</div>'}
+}
+function pickResult(r){
+  document.getElementById('f-title').value=r.title;
+  document.getElementById('f-year').value=r.year;
+  document.getElementById('f-poster').value=r.poster;
+  pickType(r.type,[...document.getElementById('seg-type').children].find(s=>s.dataset.t===r.type));
+  resultsBox.classList.remove('show');searchInput.value=r.title;
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))resultsBox.classList.remove('show')});
+
+async function save(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){document.getElementById('f-title').style.borderColor='var(--rose)';return}
+  const isWatch = (editId? entries.find(e=>e.id===editId).list : tab) === 'watch';
+  const base={title,type:formType,year:document.getElementById('f-year').value.trim(),poster:document.getElementById('f-poster').value.trim(),list:isWatch?'watch':'log'};
+  const data = isWatch ? base : {...base,
+    watched:document.getElementById('f-date').value||todayStr(),
+    rating:formRating,
+    notes:document.getElementById('f-notes').value.trim(),
+    fav:document.getElementById('f-fav').checked,
+  };
+  if(editId){const i=entries.findIndex(e=>e.id===editId);if(i>-1)entries[i]={...entries[i],...data}}
+  else{entries.unshift({id:newId(),added:Date.now(),...data})}
+  await persist();closeModal();render();
+}
+async function del(id,ev){ev.stopPropagation();entries=entries.filter(e=>e.id!==id);await persist();render()}
+async function moveToLog(id,ev){
+  ev.stopPropagation();
+  const i=entries.findIndex(e=>e.id===id);if(i<0)return;
+  entries[i]={...entries[i],list:'log',watched:todayStr(),rating:0,notes:'',fav:false,added:Date.now()};
+  await persist();render();
+  setTab('log');openModal(entries.find(e=>e.id===id));
+}
+
+function stats(){
+  const logged=entries.filter(e=>e.list==='log');
+  const films=logged.filter(e=>e.type==='film').length;
+  const tv=logged.filter(e=>e.type==='tv').length;
+  const rated=logged.filter(e=>e.rating>0);
+  const avg=rated.length?(rated.reduce((a,e)=>a+e.rating,0)/rated.length).toFixed(1):'—';
+  document.getElementById('s-total').textContent=logged.length;
+  document.getElementById('s-films').textContent=films;
+  document.getElementById('s-tv').textContent=tv;
+  document.getElementById('s-avg').textContent=avg;
+  document.getElementById('c-log').textContent=logged.length?`(${logged.length})`:'';
+  const w=entries.filter(e=>e.list==='watch').length;
+  document.getElementById('c-watch').textContent=w?`(${w})`:'';
+}
+
+function currentList(){
+  const q=document.getElementById('search').value.toLowerCase().trim();
+  const sort=document.getElementById('sort').value;
+  let list=entries.filter(e=>{
+    if(tab==='log'&&(e.list||'log')!=='log')return false;
+    if(tab==='watch'&&e.list!=='watch')return false;
+    if(filter==='film'&&e.type!=='film')return false;
+    if(filter==='tv'&&e.type!=='tv')return false;
+    if(filter==='fav'&&!e.fav)return false;
+    if(q&&!(e.title.toLowerCase().includes(q)||(e.notes||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  list.sort((a,b)=>{
+    if(sort==='rating')return (b.rating||0)-(a.rating||0);
+    if(sort==='title')return a.title.localeCompare(b.title);
+    if(sort==='added')return b.added-a.added;
+    // watched date desc (fallback to added)
+    const wa=a.watched||toDateStr(a.added), wb=b.watched||toDateStr(b.added);
+    if(wa!==wb)return wb<wa?-1:1;
+    return b.added-a.added;
+  });
+  return list;
+}
+
+function render(){
+  stats();
+  const list=currentList();
+  const empty=document.getElementById('empty');
+  const diary=document.getElementById('diary');
+  const grid=document.getElementById('grid');
+  const useV = tab==='watch' ? 'grid' : view;
+
+  if(list.length===0){
+    diary.innerHTML='';grid.innerHTML='';empty.style.display='block';
+    if(tab==='watch'){document.getElementById('empty-big').textContent='Watchlist is empty';document.getElementById('empty-sub').textContent='Add something you want to watch next.';}
+    else{document.getElementById('empty-big').textContent='Your diary is empty';document.getElementById('empty-sub').textContent='Log the last thing you watched to begin.';}
+    return;
+  }
+  empty.style.display='none';
+
+  if(useV==='diary'){ diary.innerHTML=renderDiary(list); grid.innerHTML=''; }
+  else{ grid.innerHTML=renderGrid(list); diary.innerHTML=''; }
+}
+
+function renderDiary(list){
+  // group by year-month
+  const groups={};
+  list.forEach(e=>{
+    const w=e.watched||toDateStr(e.added);
+    const d=parseDate(w);
+    const key=`${d.getFullYear()}-${d.getMonth()}`;
+    (groups[key]=groups[key]||{label:`${MONTHS[d.getMonth()]} ${d.getFullYear()}`,items:[]}).items.push({e,d,w});
+  });
+  // keep insertion order (list already sorted). If sorted by non-date, groups still read sensibly.
+  let html='';
+  Object.values(groups).forEach(g=>{
+    const count=g.items.length;
+    html+=`<div class="month"><div class="month-head">${g.label}<span class="mc">${count} ${count===1?'entry':'entries'}</span></div>`;
+    g.items.forEach(({e,d})=>{
+      const poster=e.poster?`<img src="${e.poster}" alt="" onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend',this.alt)">`:escapeHtml(e.title);
+      const rateBits=[];
+      if(e.rating)rateBits.push(`<span class="score">${e.rating}</span>/10`);
+      if(e.fav)rateBits.push(`<span class="fav">★ favorite</span>`);
+      html+=`<div class="entry" onclick="openModal(byId('${e.id}'))">
+        <div class="day"><div class="num">${d.getDate()}</div><div class="dow">${DOW[d.getDay()]}</div></div>
+        <div class="e-poster">${poster}</div>
+        <div class="e-body">
+          <div class="e-title">${escapeHtml(e.title)} <span class="yr">${e.year||''}</span> <span class="tag-type ${e.type}">${e.type==='film'?'Film':'Series'}</span></div>
+          ${rateBits.length?`<div class="e-rate">${rateBits.join('<span style="opacity:.4">·</span>')}</div>`:''}
+          ${e.notes?`<div class="e-notes">${escapeHtml(e.notes)}</div>`:''}
+        </div>
+        <button class="e-del" title="Delete" onclick="del('${e.id}',event)">×</button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  return html;
+}
+
+function renderGrid(list){
+  return list.map(e=>{
+    const poster=e.poster?`<img src="${e.poster}" alt="" onerror="this.style.display='none';this.parentNode.insertAdjacentText('beforeend',this.alt)">`:escapeHtml(e.title);
+    const isWatch=e.list==='watch';
+    const corner = isWatch
+      ? `<button class="mini w" title="Mark as watched" onclick="moveToLog('${e.id}',event)">✓</button><button class="mini d" title="Remove" onclick="del('${e.id}',event)">×</button>`
+      : `<button class="mini d" title="Delete" onclick="del('${e.id}',event)">×</button>`;
+    const subRight = isWatch ? '' : (e.watched? shortDate(e.watched) : '');
+    return `<div class="card" onclick="openModal(byId('${e.id}'))">
+      <div class="poster">
+        <span class="badge ${e.type}">${e.type==='film'?'Film':'Series'}</span>
+        ${poster}
+        ${(!isWatch&&e.rating)?`<span class="ring">${e.rating}</span>`:''}
+        <div class="corner">${corner}</div>
+      </div>
+      <div class="meta"><div class="title">${escapeHtml(e.title)}</div>
+      <div class="sub"><span>${e.year||'—'}</span><span>${(!isWatch&&e.fav)?'★ ':''}${subRight}</span></div></div>
+    </div>`;
+  }).join('');
+}
+function shortDate(s){const d=parseDate(s);return `${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}`}
+function byId(id){return entries.find(e=>e.id===id)}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+function openSettings(){document.getElementById('tmdb-key').value=tmdbKey;document.getElementById('key-status').textContent=tmdbKey?'A key is saved.':'No key saved yet.';document.getElementById('settings-overlay').classList.add('show')}
+function closeSettings(){document.getElementById('settings-overlay').classList.remove('show')}
+document.getElementById('settings-overlay').onclick=e=>{if(e.target.id==='settings-overlay')closeSettings()};
+async function saveKey(){tmdbKey=document.getElementById('tmdb-key').value.trim();try{await window.storage.set(KKEY,tmdbKey)}catch(e){}document.getElementById('key-status').textContent=tmdbKey?'Key saved ✓':'Key cleared.';setTimeout(closeSettings,700)}
+
+// ---- Bulk add ----
+let bulkStaged=[], bulkFormType='film', bulkTimer=null;
+const bulkSearchEl=document.getElementById('bulk-search');
+const bulkResultsEl=document.getElementById('bulk-results');
+
+function openBulk(){
+  bulkStaged=[];bulkFormType='film';
+  [...document.getElementById('bulk-seg').children].forEach(s=>s.classList.toggle('on',s.dataset.t==='film'));
+  document.getElementById('bulk-date').value=todayStr();
+  document.getElementById('bulk-nodate').checked=false;
+  document.getElementById('bulk-year').value='';
+  toggleBulkDate();
+  bulkSearchEl.value='';bulkResultsEl.classList.remove('show');
+  document.getElementById('bulk-hint').innerHTML = tmdbKey ? 'Pick from search results, or type any title and press Enter to add it.' : 'No TMDB key set — type a title and press Enter to add it. Add a key in ⚙ for posters.';
+  renderBulkList();
+  document.getElementById('bulk-overlay').classList.add('show');
+  setTimeout(()=>bulkSearchEl.focus(),50);
+}
+function closeBulk(){document.getElementById('bulk-overlay').classList.remove('show')}
+document.getElementById('bulk-overlay').onclick=e=>{if(e.target.id==='bulk-overlay')closeBulk()};
+function bulkType(t,el){bulkFormType=t;[...document.getElementById('bulk-seg').children].forEach(s=>s.classList.remove('on'));el.classList.add('on')}
+function toggleBulkDate(){
+  const no=document.getElementById('bulk-nodate').checked;
+  document.getElementById('bulk-date-field').style.display=no?'none':'';
+  document.getElementById('bulk-year-field').style.display=no?'':'none';
+}
+
+function addStaged(item){
+  bulkStaged.push(item);
+  renderBulkList();
+  bulkSearchEl.value='';bulkResultsEl.classList.remove('show');
+  bulkSearchEl.focus();
+}
+function removeStaged(i){bulkStaged.splice(i,1);renderBulkList()}
+function renderBulkList(){
+  const box=document.getElementById('bulk-list');
+  document.getElementById('bulk-save').textContent = bulkStaged.length ? `Log all (${bulkStaged.length})` : 'Log all';
+  if(!bulkStaged.length){box.innerHTML='<div class="bulk-empty">No titles staged yet. Search or type above to add some.</div>';return}
+  box.innerHTML=bulkStaged.map((it,i)=>`
+    <div class="bulk-row">
+      ${it.poster?`<img src="${it.poster}" alt="">`:'<div class="ph"></div>'}
+      <div class="bt"><div class="n">${escapeHtml(it.title)}</div>
+      <div class="m">${it.type==='film'?'Film':'Series'}${it.year?' · '+it.year:''}</div></div>
+      <button class="rm" title="Remove" onclick="removeStaged(${i})">×</button>
+    </div>`).join('');
+}
+
+bulkSearchEl.addEventListener('input',()=>{
+  const q=bulkSearchEl.value.trim();clearTimeout(bulkTimer);
+  if(!tmdbKey){bulkResultsEl.classList.remove('show');return}
+  if(q.length<2){bulkResultsEl.classList.remove('show');return}
+  bulkResultsEl.innerHTML='<div class="res-status">Searching…</div>';bulkResultsEl.classList.add('show');
+  bulkTimer=setTimeout(()=>bulkTmdbSearch(q),300);
+});
+bulkSearchEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    e.preventDefault();
+    const q=bulkSearchEl.value.trim();
+    if(q){addStaged({title:q,year:'',poster:'',type:bulkFormType})}
+  }
+});
+async function bulkTmdbSearch(q){
+  try{
+    const url=`https://api.themoviedb.org/3/search/multi?api_key=${encodeURIComponent(tmdbKey)}&query=${encodeURIComponent(q)}&include_adult=false`;
+    const res=await fetch(url);
+    if(!res.ok){bulkResultsEl.innerHTML=`<div class="res-status">TMDB error ${res.status}. Check your key.</div>`;return}
+    const data=await res.json();
+    const items=(data.results||[]).filter(r=>r.media_type==='movie'||r.media_type==='tv').slice(0,8);
+    if(!items.length){bulkResultsEl.innerHTML='<div class="res-status">No matches. Press Enter to add as typed.</div>';return}
+    bulkResultsEl.innerHTML='';
+    items.forEach(it=>{
+      const isFilm=it.media_type==='movie';
+      const title=isFilm?it.title:it.name;
+      const date=isFilm?it.release_date:it.first_air_date;
+      const year=date?date.slice(0,4):'';
+      const poster=it.poster_path?`https://image.tmdb.org/t/p/w92${it.poster_path}`:'';
+      const big=it.poster_path?`https://image.tmdb.org/t/p/w500${it.poster_path}`:'';
+      const row=document.createElement('div');row.className='res-item';
+      row.innerHTML=`${poster?`<img src="${poster}" alt="">`:'<div class="res-ph"></div>'}<div class="res-info"><div class="res-t">${escapeHtml(title)}</div><div class="res-m">${isFilm?'Film':'Series'}${year?' · '+year:''}</div></div>`;
+      row.onclick=()=>addStaged({title,year,poster:big,type:isFilm?'film':'tv'});
+      bulkResultsEl.appendChild(row);
+    });
+  }catch(e){bulkResultsEl.innerHTML='<div class="res-status">Network error reaching TMDB.</div>'}
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#bulk-overlay .search-wrap'))bulkResultsEl.classList.remove('show')});
+
+async function saveBulk(){
+  if(!bulkStaged.length){closeBulk();return}
+  let watched;
+  if(document.getElementById('bulk-nodate').checked){
+    const yr=(document.getElementById('bulk-year').value.trim()||String(new Date().getFullYear())).replace(/\D/g,'').slice(0,4);
+    watched=`${yr||new Date().getFullYear()}-01-01`;
+  }else{
+    watched=document.getElementById('bulk-date').value||todayStr();
+  }
+  // preserve staged order in the diary: first staged reads first within the day
+  const base=Date.now();
+  bulkStaged.forEach((it,idx)=>{
+    entries.unshift({id:newId(),added:base+(bulkStaged.length-idx),list:'log',watched,title:it.title,type:it.type,year:it.year||'',poster:it.poster||'',rating:0,notes:'',fav:false});
+  });
+  await persist();closeBulk();
+  if(tab!=='log')setTab('log'); else render();
+}
+
+document.getElementById('search').oninput=render;
+document.getElementById('sort').onchange=render;
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeModal();closeSettings();closeBulk()}
+  if(e.key==='Enter'&&document.getElementById('overlay').classList.contains('show')&&e.target.tagName!=='TEXTAREA'&&e.target.id!=='tmdb-search'&&!resultsBox.classList.contains('show'))save();
+});
+
+load();
+</script>
+</body>
+</html>
